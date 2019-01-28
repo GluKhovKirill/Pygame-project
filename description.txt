@@ -1,0 +1,6 @@
+
+.| empty(grass)        |tiles_group | grass.png                            | Пол, по которому можно идти
+#| wall                |walls_group | box.png                              | Стена (не пройти, ничего летального)
+X| hole                |hole_group  | hole.png                             | Дыра/Яма (с летальным падением)
+@| empty(grass)+player |player_group| grass.png + player_image (mario.png) | Точка спавна игрока
+E| exit                |exit_group  | exit.png                             | Точка выхода
