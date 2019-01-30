@@ -7,6 +7,9 @@ sys.argv.append("ex2.txt") #TODO: REMOVE
 pygame.init()
 pygame.key.set_repeat(70, 70)
 size = WIDTH, HEIGHT = 400, 350
+SIDE = 50
+JUMP_K = 2
+STEP = 10
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
  
@@ -42,8 +45,7 @@ def generate_level(level):
                 Tile('empty', x, y)
                 new_player = Player(x, y)
             else:
-                Tile("hole", x, y)
-    # ������������ ������������, �� ���������� ������������ �������� �� ��������������            
+                Tile("hole", x, y)            
     return new_player, x, y
 
 
@@ -100,12 +102,12 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 tile_images = {
-    'wall': load_image('box.png'),
-    'empty': load_image('grass.png'),
+    'wall': load_image('wall.jpg'),
+    'empty': load_image('ground.jpg'),
     "hole": load_image("hole.png"),
     "exit": load_image("exit.png")
 }
-player_image = load_image('mario.png')
+player_image = load_image('player.png')
  
 tile_width = tile_height = 50
 # player
@@ -160,17 +162,6 @@ class Camera:
     def apply(self, obj):
         obj.rect.x += self.dx
         obj.rect.y += self.dy
-        '''
-        if obj.rect.x > WIDTH+50:
-            obj.rect.x -= (X+1)*50
-        elif obj.rect.x < -50:
-            obj.rect.x += (X+1)*50
-        
-        if obj.rect.y > HEIGHT+50:
-            obj.rect.y -= (Y+1)*50
-        elif obj.rect.y < -50:
-            obj.rect.y += (Y+1)*50   
-        '''
 
     # позиционировать камеру на объекте target
     def update(self, target):
@@ -196,30 +187,44 @@ player_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
 '''
 
-
+last_dir = [0, 0]
 while running:
     coords = None
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False             
         elif event.type == pygame.KEYDOWN:
-            last_x, last_y = 0, 0
             if event.key == 275:
-                player.rect.x += 10
-                last_x += 10
+                player.rect.x += STEP
+                last_dir = [STEP, 0]
             elif event.key == 276:
-                player.rect.x -= 10
-                last_x -= 10
+                player.rect.x -= STEP
+                last_dir = [-STEP, 0]
             if event.key == 274:
-                player.rect.y += 10
-                last_y += 10
+                player.rect.y += STEP
+                last_dir = [0, STEP]
             elif event.key == 273:
-                player.rect.y -= 10
-                last_y = -10
+                player.rect.y -= STEP
+                last_dir = [0, -STEP]
+            elif event.key == 32: #jump
+                if last_dir[0]:
+                    player.rect.x += int((last_dir[0]//abs(last_dir[0])) * SIDE)
+                    if pygame.sprite.spritecollideany(player, walls_group):
+                        player.rect.x -= int((last_dir[0]//abs(last_dir[0])) * SIDE)
+                    else:
+                        player.rect.x += int((last_dir[0]//abs(last_dir[0])) * SIDE * (JUMP_K-1))
+                        last_dir[0] = int((last_dir[0]//abs(last_dir[0])) * SIDE * JUMP_K)
+                if last_dir[1]:
+                    player.rect.y += int((last_dir[1]//abs(last_dir[1])) * SIDE)
+                    if pygame.sprite.spritecollideany(player, walls_group):
+                        player.rect.y -= int((last_dir[1]//abs(last_dir[1])) * SIDE)
+                    else:
+                        player.rect.y += int((last_dir[1]//abs(last_dir[1])) * SIDE * (JUMP_K-1))
+                        last_dir[1] = int((last_dir[1]//abs(last_dir[1])) * SIDE * JUMP_K)
                 
             if pygame.sprite.spritecollideany(player, walls_group):
-                player.rect.x -= last_x
-                player.rect.y -= last_y
+                player.rect.x -= last_dir[0]
+                player.rect.y -= last_dir[1]
             if pygame.sprite.spritecollideany(player, hole_group):
                 running = False
                 print("Game Over")
