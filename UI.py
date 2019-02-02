@@ -85,10 +85,10 @@ def terminate():
     sys.exit()
  
  
-def start_screen():
-    intro_text = ["ЗАСТАВКА", "",
-                  "ПРАВИЛА ИГРЫ",
-                  "КТО-НИБУДЬ ИХ ЗНАЕТ?"]
+def start_screen(count=0):
+    intro_text = ["Ваша задача:",
+                  "Выбраться отсюда",
+                  "Попыток совершено:"+str(count)]
  
     fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
@@ -138,17 +138,6 @@ tile_images = {
 player_image = load_image('player.png')
  
 tile_width = tile_height = 50
-# player
-player = None
- 
-# sprites
-all_sprites = pygame.sprite.Group()
-tiles_group = pygame.sprite.Group() #Grass
-walls_group = pygame.sprite.Group() # WALLS
-hole_group = pygame.sprite.Group() #DIE
-player_group = pygame.sprite.Group() #player
-exit_group = pygame.sprite.Group() #exit
-
 
 
 class Tile(pygame.sprite.Sprite):
@@ -196,15 +185,31 @@ class Camera:
         self.dx = -(target.rect.x + target.rect.w // 2 - WIDTH // 2)
         self.dy = -(target.rect.y + target.rect.h // 2 - HEIGHT // 2)
 #====================================   
-camera = Camera()
-running = True
-try:
-    name = sys.argv[1]
-    player, X, Y = generate_level(load_level(name))
-    start_screen()
-except Exception as e:
-    print("Error....", e)
-    running = False
+def new_game(count):
+    global running, camera, player, X, Y
+    camera = Camera()
+    running = True
+    
+    # sprites
+    global all_sprites, tiles_group, walls_group, hole_group, player_group, exit_group
+    all_sprites = pygame.sprite.Group()
+    tiles_group = pygame.sprite.Group() #Grass
+    walls_group = pygame.sprite.Group() # WALLS
+    hole_group = pygame.sprite.Group() #DIE
+    player_group = pygame.sprite.Group() #player
+    exit_group = pygame.sprite.Group() #exit
+    
+    # player
+    global player
+    player = None
+    
+    try:
+        name = sys.argv[1]
+        player, X, Y = generate_level(load_level(name))
+        start_screen(count)
+    except Exception as e:
+        print("Error....", e)
+        running = False
 
 '''
 all_sprites = pygame.sprite.Group()
@@ -214,7 +219,8 @@ hole_group = pygame.sprite.Group() #DIE
 player_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
 '''
-
+count = 0 # number of attemps
+new_game(count)
 last_dir = [0, 0]
 while running:
     coords = None
@@ -222,16 +228,16 @@ while running:
         if event.type == pygame.QUIT:
             running = False             
         elif event.type == pygame.KEYDOWN:
-            if event.key == 275:
+            if event.key == 275 or event.key == 100: #right
                 player.rect.x += STEP
                 last_dir = [STEP, 0]
-            elif event.key == 276:
+            elif event.key == 276 or event.key == 97: #left
                 player.rect.x -= STEP
                 last_dir = [-STEP, 0]
-            if event.key == 274:
+            if event.key == 274 or event.key == 115: #bottom
                 player.rect.y += STEP
                 last_dir = [0, STEP]
-            elif event.key == 273:
+            elif event.key == 273 or event.key == 119: #top
                 player.rect.y -= STEP
                 last_dir = [0, -STEP]
             elif event.key == 32: #jump
@@ -256,10 +262,13 @@ while running:
             if pygame.sprite.spritecollideany(player, hole_group):
                 running = False
                 print("Game Over")
+                count += 1
+                new_game(count)
                 pass
             if pygame.sprite.spritecollideany(player, exit_group):
                 running = False
-                print("FINISHED")
+                count += 1
+                print("FINISHED", "COUNTS: "+str(count), sep="\n")
                 pass
 
     all_sprites.update()
