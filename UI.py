@@ -135,10 +135,10 @@ def load_level(filename):
 tile_images = {
     'wall': load_dir('wall', count=1),
     'empty': load_dir("ground", count=1),
-    "hole": load_dir("hole", count=1),
+    "hole": load_dir("hole"),
     "exit": load_image("exit.png")
 }
-player_image = load_image('player.png', colorkey=-1)
+player_image = load_dir('player', colorkey=-1, count=1)
  
 tile_width = tile_height = 50
 
@@ -154,10 +154,14 @@ class Tile(pygame.sprite.Sprite):
             add = hole_group
         elif tile_type == "exit":
             add = exit_group
- 
+        
         super().__init__(add, all_sprites)
-
-        self.image = tile_images[tile_type]
+        image = tile_images[tile_type]
+        if type(image) == type([]):
+            shuffle(image)
+            self.image = image[0]
+        else:
+            self.image = image
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
     pass
@@ -213,6 +217,17 @@ def new_game(count):
     except Exception as e:
         print("Error....", e)
         running = False
+    pass
+
+
+def music():
+    if not pygame.mixer.get_busy():
+        path = os.path.abspath(os.curdir)+"\\data\\sound.mp3"
+        print(path)
+        pygame.mixer.music.load(path)
+        pygame.mixer.music.play(-1)
+    pass
+
 
 '''
 all_sprites = pygame.sprite.Group()
@@ -225,6 +240,8 @@ exit_group = pygame.sprite.Group()
 count = 0 # number of attemps
 new_game(count)
 last_dir = [0, 0]
+volume = 1
+music()
 while running:
     coords = None
     for event in pygame.event.get():
@@ -248,6 +265,14 @@ while running:
                 print("You killed yourself\nCongradulations!")
                 count += 1
                 new_game(count)
+            elif event.key == 93:
+                volume = (volume+0.1)%1
+                pygame.mixer.music.set_volume(volume)
+                pass
+            elif event.key == 91:
+                volume = (volume-0.1)%1
+                pygame.mixer.music.set_volume(volume)                
+                pass
             elif event.key == 32: #jump
                 if last_dir[0]:
                     player.rect.x += int((last_dir[0]//abs(last_dir[0])) * SIDE)
