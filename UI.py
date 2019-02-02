@@ -1,6 +1,7 @@
 import os
 import pygame
 import sys
+from random import choice
 sys.argv.append("ex2.txt") #TODO: REMOVE
 
 
@@ -14,19 +15,45 @@ screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
  
 
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
+def load_image(name, colorkey=None, add_data=True):
+    fullname = name
     try:
+        if add_data:
+            fullname = os.path.join('data', name)
         image = pygame.image.load(fullname)
+        
     except pygame.error as message:
-        print('Cannot load image:', name)
-        raise SystemExit(message)
+        raise SystemExit(name)
     image = image.convert_alpha()
     if colorkey is not None:
         if colorkey is -1:
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey)
     return image 
+
+
+def load_dir(path, colorkey=None, random=False):
+    try:
+        path = os.path.join('data', path)
+        files = os.listdir(path)
+        files = map(lambda x: path+"\\"+x, files)
+        files = list(filter(lambda x: ".png" in x or ".jpg" in x, files))
+    except BaseException as e:
+        print("Cannot open dir:", path)
+        files = []
+    if len(files)>1 and random:
+        files = [choice(files)]
+    images = []
+
+    try:
+        for image_name in files:
+            image = load_image(image_name, colorkey, False)
+            images.append(image)
+        if random:
+            images = images[0]
+    except SystemExit as name:
+        print('Cannot load image:', name)
+    return images
 
 
 def generate_level(level):
@@ -47,7 +74,6 @@ def generate_level(level):
             else:
                 Tile("hole", x, y)            
     return new_player, x, y
-
 
 
 FPS = 50
@@ -76,6 +102,7 @@ def start_screen():
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
  
+ 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -86,7 +113,6 @@ def start_screen():
         pygame.display.flip()
         clock.tick(FPS)
     pass
-
 
 
 def load_level(filename):
@@ -101,10 +127,11 @@ def load_level(filename):
     # дополняем каждую строку пустыми клетками ('.')    
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
+
 tile_images = {
-    'wall': load_image('wall.jpg'),
-    'empty': load_image('ground.jpg'),
-    "hole": load_image("hole.png"),
+    'wall': load_dir('wall', random=True),
+    'empty': load_dir("ground", random=True),
+    "hole": load_dir("hole", random=True),
     "exit": load_image("exit.png")
 }
 player_image = load_image('player.png')
