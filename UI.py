@@ -29,6 +29,9 @@ def load_image(name, colorkey=None, add_data=True):
         if colorkey is -1:
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey)
+        image = image.convert()
+    else:
+        image = image.convert_alpha()
     return image 
 
 
@@ -135,7 +138,7 @@ tile_images = {
     "hole": load_dir("hole", count=1),
     "exit": load_image("exit.png")
 }
-player_image = load_image('player.png')
+player_image = load_image('player.png', colorkey=-1)
  
 tile_width = tile_height = 50
 
@@ -240,6 +243,11 @@ while running:
             elif event.key == 273 or event.key == 119: #top
                 player.rect.y -= STEP
                 last_dir = [0, -STEP]
+            elif event.key == 107: #suicideC
+                running = False
+                print("You killed yourself\nCongradulations!")
+                count += 1
+                new_game(count)
             elif event.key == 32: #jump
                 if last_dir[0]:
                     player.rect.x += int((last_dir[0]//abs(last_dir[0])) * SIDE)
