@@ -1,7 +1,7 @@
 import os
 import pygame
 import sys
-from random import choice
+from random import shuffle
 sys.argv.append("ex2.txt") #TODO: REMOVE
 
 
@@ -32,7 +32,7 @@ def load_image(name, colorkey=None, add_data=True):
     return image 
 
 
-def load_dir(path, colorkey=None, random=False):
+def load_dir(path, colorkey=None, count=-1):
     try:
         path = os.path.join('data', path)
         files = os.listdir(path)
@@ -41,18 +41,19 @@ def load_dir(path, colorkey=None, random=False):
     except BaseException as e:
         print("Cannot open dir:", path)
         files = []
-    if len(files)>1 and random:
-        files = [choice(files)]
+    shuffle(files)
+    if count != -1:
+        files = files[0:count]
     images = []
 
     try:
         for image_name in files:
             image = load_image(image_name, colorkey, False)
             images.append(image)
-        if random:
-            images = images[0]
     except SystemExit as name:
         print('Cannot load image:', name)
+    if len(images) == 1:
+        images = images[0]
     return images
 
 
@@ -129,9 +130,9 @@ def load_level(filename):
 
 
 tile_images = {
-    'wall': load_dir('wall', random=True),
-    'empty': load_dir("ground", random=True),
-    "hole": load_dir("hole", random=True),
+    'wall': load_dir('wall', count=1),
+    'empty': load_dir("ground", count=1),
+    "hole": load_dir("hole", count=1),
     "exit": load_image("exit.png")
 }
 player_image = load_image('player.png')
