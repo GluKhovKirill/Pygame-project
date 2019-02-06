@@ -295,7 +295,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False    
-        elif event.type == CHANGE_SHEET_ID:
+        elif event.type == CHANGE_SHEET_ID or player.last_direction != last_direction:
             player_group.update(True, last_direction)
         elif event.type == pygame.KEYDOWN:
             if event.key == 275 or event.key == 100: #right
