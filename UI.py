@@ -43,13 +43,13 @@ class Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
-        down_frames = self.cut_sheet(player_down_image, 15, 1)
-        up_frames = self.cut_sheet(player_up_image, 15, 1)
+        stay_frames = self.cut_sheet(player_stay_image, 15, 1)
         right_frames = self.cut_sheet(player_right_image, 12, 1)
         left_frames = self.cut_sheet(player_left_image, 12, 1)
-        
-        self.all_frames = [down_frames, up_frames,
-                           right_frames, left_frames] #down, up, right, left
+        self.stable_frames = 0
+        self.staying = False
+        self.last_dir_was_right = False
+        self.all_frames = [right_frames, left_frames, stay_frames]
         self.current_frames = self.all_frames[0]
         self.image = self.current_frames[0]
         self.current_frame = 0
@@ -66,27 +66,42 @@ class Player(pygame.sprite.Sprite):
                 frame_location = (self.rect.w * i, self.rect.h * j)
                 image = sheet.subsurface(pygame.Rect(frame_location, self.rect.size))
                 #print(self.rect.size)
-                #image = pygame.transform.chop(image, (35, 38, 40, 40))
                 frames.append(image)
         return frames
     
     def update(self, change_image=False, direction=None):
         if direction and self.last_direction != direction:
+            if self.last_direction[0] > 0:
+                self.last_dir_was_right = True
+            elif self.last_direction[0] < 0:
+                self.last_dir_was_right = False
+            #print([str(i) for i in (direction, self.last_direction, self.last_dir_was_right)])
             self.current_frame = 0
-            self.last_direction = direction
-            if (self.last_direction[1] > 0) or self.last_direction == [0, 0]: #down
+            if (direction[0] > 0) or (direction[1] != 0 and self.last_dir_was_right):
+                #vertivcal - right
+                self.last_dir_was_right = True
                 self.current_frames = self.all_frames[0]
-            elif self.last_direction[1] < 0: #up
+            elif direction == [0, 0]:
+                #stable
+                print("stable")
+                pass
+            else:
+                #vertical - left
+                self.last_dir_was_right = False
                 self.current_frames = self.all_frames[1]
-            elif self.last_direction[0] > 0: #right
-                self.current_frames = self.all_frames[2]
-            elif self.last_direction[0] < 0: #left
-                self.current_frames = self.all_frames[3]
+            
             self.image = self.current_frames[0]
             self.mask = pygame.mask.from_surface(self.image)
+            self.last_direction = direction
         if change_image:
-            self.current_frame = (self.current_frame + 1) % len(self.current_frames)
-            self.image = self.current_frames[self.current_frame]
+            if staying_k < 2 or self.staying:
+                self.current_frame = (self.current_frame + 1) % len(self.current_frames)
+                self.image = self.current_frames[self.current_frame]
+            else:
+                self.current_frames = self.all_frames[2]
+                self.image = self.current_frames[0]
+                self.staying = True
+                
             #print(self.current_frame)
             pass
     pass
@@ -276,8 +291,8 @@ tile_images = {
     "hole": load_dir("hole"),
     "exit": load_image("exit.png")
 }
-player_down_image = load_image("player\\player_down.png")
-player_up_image = load_image("player\\player_down.png")
+
+player_stay_image = load_image("player\\player_stay.png")
 player_left_image = load_image("player\\player_left.png")
 player_right_image = load_image("player\\player_right.png")
  
@@ -286,58 +301,72 @@ count = 0 # number of attemps
 new_game(count)
 last_direction = [0, 0]
 volume = 1
+staying_k = 0
 
 music()
-pygame.time.set_timer(CHANGE_SHEET_ID, 500)
-
+pygame.time.set_timer(CHANGE_SHEET_ID, 225)
+clock.tick()
 while running:
-    coords = None
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False    
         elif event.type == CHANGE_SHEET_ID or player.last_direction != last_direction:
             player_group.update(True, last_direction)
         elif event.type == pygame.KEYDOWN:
-            if event.key == 275 or event.key == 100: #right
+            if event.key == 275 or event.key == 100:
+                #right
+                staying_k = 0
+                clock.tick()
                 player.rect.x += STEP
                 last_direction = [STEP, 0]
-            elif event.key == 276 or event.key == 97: #left
+            elif event.key == 276 or event.key == 97:
+                #left
+                staying_k = 0
+                clock.tick()
                 player.rect.x -= STEP
                 last_direction = [-STEP, 0]
-            if event.key == 274 or event.key == 115: #bottom
+            if event.key == 274 or event.key == 115:
+                #bottom
+                staying_k = 0
+                clock.tick()
                 player.rect.y += STEP
                 last_direction = [0, STEP]
-            elif event.key == 273 or event.key == 119: #top
+            elif event.key == 273 or event.key == 119:
+                #top
+                staying_k = 0
+                clock.tick()
                 player.rect.y -= STEP
-                last_direction = [0, -STEP]         
-            elif event.key == 107: #suicideC
-                running = False
-                print("You killed yourself\nCongradulations!")
-                count += 1
-                new_game(count)
-            elif event.key == 93:
-                volume = (volume+0.1)%1
-                pygame.mixer.music.set_volume(volume)
-                pass
-            elif event.key == 91:
-                volume = (volume-0.1)%1
-                pygame.mixer.music.set_volume(volume)                
-                pass
-            elif event.key == 32: #jump
-                if last_direction[0]:
-                    player.rect.x += int((last_direction[0]//abs(last_direction[0])) * SIDE)
-                    if pygame.sprite.spritecollideany(player, walls_group):
-                        player.rect.x -= int((last_direction[0]//abs(last_direction[0])) * SIDE)
-                    else:
-                        player.rect.x += int((last_direction[0]//abs(last_direction[0])) * SIDE * (JUMP_K-1))
-                        last_direction[0] = int((last_direction[0]//abs(last_direction[0])) * SIDE * JUMP_K)
-                if last_direction[1]:
-                    player.rect.y += int((last_direction[1]//abs(last_direction[1])) * SIDE)
-                    if pygame.sprite.spritecollideany(player, walls_group):
-                        player.rect.y -= int((last_direction[1]//abs(last_direction[1])) * SIDE)
-                    else:
-                        player.rect.y += int((last_direction[1]//abs(last_direction[1])) * SIDE * (JUMP_K-1))
-                        last_direction[1] = int((last_direction[1]//abs(last_direction[1])) * SIDE * JUMP_K)
+                last_direction = [0, -STEP]   
+            else:
+                staying_k += clock.tick() / 1000
+                if event.key == 107: #suicideC
+                    running = False
+                    print("You killed yourself\nCongradulations!")
+                    count += 1
+                    new_game(count)
+                elif event.key == 93:
+                    volume = (volume+0.1)%1
+                    pygame.mixer.music.set_volume(volume)
+                    pass
+                elif event.key == 91:
+                    volume = (volume-0.1)%1
+                    pygame.mixer.music.set_volume(volume)                
+                    pass
+                elif event.key == 32: #jump
+                    if last_direction[0]:
+                        player.rect.x += int((last_direction[0]//abs(last_direction[0])) * SIDE)
+                        if pygame.sprite.spritecollideany(player, walls_group):
+                            player.rect.x -= int((last_direction[0]//abs(last_direction[0])) * SIDE)
+                        else:
+                            player.rect.x += int((last_direction[0]//abs(last_direction[0])) * SIDE * (JUMP_K-1))
+                            last_direction[0] = int((last_direction[0]//abs(last_direction[0])) * SIDE * JUMP_K)
+                    if last_direction[1]:
+                        player.rect.y += int((last_direction[1]//abs(last_direction[1])) * SIDE)
+                        if pygame.sprite.spritecollideany(player, walls_group):
+                            player.rect.y -= int((last_direction[1]//abs(last_direction[1])) * SIDE)
+                        else:
+                            player.rect.y += int((last_direction[1]//abs(last_direction[1])) * SIDE * (JUMP_K-1))
+                            last_direction[1] = int((last_direction[1]//abs(last_direction[1])) * SIDE * JUMP_K)
                         
             if pygame.sprite.spritecollideany(player, walls_group):
                 #print("WAAAAALL")
