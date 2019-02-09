@@ -7,11 +7,13 @@ sys.argv.append("ex2.txt") #TODO: REMOVE
 
 pygame.init()
 pygame.key.set_repeat(70, 70)
-size = WIDTH, HEIGHT = 400, 350
+size = WIDTH, HEIGHT = 1280, 720
 SIDE = 50
 JUMP_K = 2
 STEP = 10
 CHANGE_SHEET_ID = 30
+STABLE_ID = 31
+STABLE_K = 500
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
  
@@ -43,9 +45,9 @@ class Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
-        stay_frames = self.cut_sheet(player_stay_image, 15, 1)
-        right_frames = self.cut_sheet(player_right_image, 12, 1)
-        left_frames = self.cut_sheet(player_left_image, 12, 1)
+        stay_frames = self.cut_sheet(player_stay_image, 10, 1)
+        right_frames = self.cut_sheet(player_right_image, 10, 1)
+        left_frames = self.cut_sheet(player_left_image, 10, 1)
         self.stable_frames = 0
         self.staying = False
         self.last_dir_was_right = False
@@ -62,14 +64,21 @@ class Player(pygame.sprite.Sprite):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, sheet.get_height() // rows)
         print("SIZE",sheet.get_width() // columns, sheet.get_height() // rows)
         for j in range(rows):
+            st = -1
             for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
+                st += 1
+                frame_location = ((self.rect.w * i)+st, self.rect.h * j)
+                #print(frame_location, self.rect.size)
                 image = sheet.subsurface(pygame.Rect(frame_location, self.rect.size))
                 #print(self.rect.size)
                 frames.append(image)
         return frames
     
-    def update(self, change_image=False, direction=None):
+    def update(self, change_image=False, direction=None, stay=None):
+        if stay:
+            self.current_frames = self.all_frames[2]
+            self.image = self.current_frames[0]
+            self.direction = [0, 0]
         if direction and self.last_direction != direction:
             if self.last_direction[0] > 0:
                 self.last_dir_was_right = True
@@ -94,13 +103,8 @@ class Player(pygame.sprite.Sprite):
             self.mask = pygame.mask.from_surface(self.image)
             self.last_direction = direction
         if change_image:
-            if staying_k < 2 or self.staying:
-                self.current_frame = (self.current_frame + 1) % len(self.current_frames)
-                self.image = self.current_frames[self.current_frame]
-            else:
-                self.current_frames = self.all_frames[2]
-                self.image = self.current_frames[0]
-                self.staying = True
+            self.current_frame = (self.current_frame + 1) % len(self.current_frames)
+            self.image = self.current_frames[self.current_frame]
                 
             #print(self.current_frame)
             pass
@@ -179,6 +183,7 @@ def generate_level(level):
             elif level[y][x] == "X":
                 Tile("hole", x, y)
             elif level[y][x] == "E":
+                Tile('empty', x, y)
                 Tile("exit", x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
@@ -237,7 +242,8 @@ def load_level(filename):
     max_width = max(map(len, level_map))
  
     # дополняем каждую строку пустыми клетками ('.')    
-    return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+    answer = list(map(lambda x: x.ljust(max_width, '.'), level_map))
+    return answer
 
   
 def new_game(count):
@@ -304,41 +310,38 @@ volume = 1
 staying_k = 0
 
 music()
-pygame.time.set_timer(CHANGE_SHEET_ID, 225)
-clock.tick()
+pygame.time.set_timer(CHANGE_SHEET_ID, 150)
+pygame.time.set_timer(STABLE_ID, STABLE_K)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False    
         elif event.type == CHANGE_SHEET_ID or player.last_direction != last_direction:
             player_group.update(True, last_direction)
+        elif event.type == STABLE_ID:
+            player_group.update(False, None, True)
         elif event.type == pygame.KEYDOWN:
             if event.key == 275 or event.key == 100:
                 #right
-                staying_k = 0
-                clock.tick()
+                pygame.time.set_timer(STABLE_ID, STABLE_K)
                 player.rect.x += STEP
                 last_direction = [STEP, 0]
             elif event.key == 276 or event.key == 97:
                 #left
-                staying_k = 0
-                clock.tick()
+                pygame.time.set_timer(STABLE_ID, STABLE_K)
                 player.rect.x -= STEP
                 last_direction = [-STEP, 0]
             if event.key == 274 or event.key == 115:
                 #bottom
-                staying_k = 0
-                clock.tick()
+                pygame.time.set_timer(STABLE_ID, STABLE_K)
                 player.rect.y += STEP
                 last_direction = [0, STEP]
             elif event.key == 273 or event.key == 119:
                 #top
-                staying_k = 0
-                clock.tick()
+                pygame.time.set_timer(STABLE_ID, STABLE_K)
                 player.rect.y -= STEP
                 last_direction = [0, -STEP]   
             else:
-                staying_k += clock.tick() / 1000
                 if event.key == 107: #suicideC
                     running = False
                     print("You killed yourself\nCongradulations!")
