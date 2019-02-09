@@ -11,11 +11,17 @@ size = WIDTH, HEIGHT = 1280, 720
 SIDE = 50
 JUMP_K = 2
 STEP = 10
+TEXT_COLOR = "#2F17C7"
+#Timers' IDs
 CHANGE_SHEET_ID = 30
 STABLE_ID = 31
-STABLE_K = 500
+# Time coeffficients
+STABLE_T = 250
+CHANGE_T = 150
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
+#music volume
+volume = 0.3
  
 
 class Tile(pygame.sprite.Sprite):
@@ -62,7 +68,7 @@ class Player(pygame.sprite.Sprite):
     def cut_sheet(self, sheet, columns, rows):
         frames = []
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, sheet.get_height() // rows)
-        print("SIZE",sheet.get_width() // columns, sheet.get_height() // rows)
+        #print("SIZE",sheet.get_width() // columns, sheet.get_height() // rows)
         for j in range(rows):
             st = -1
             for i in range(columns):
@@ -75,6 +81,7 @@ class Player(pygame.sprite.Sprite):
         return frames
     
     def update(self, change_image=False, direction=None, stay=None):
+        #print(change_image, direction, stay)
         if stay:
             self.current_frames = self.all_frames[2]
             self.image = self.current_frames[0]
@@ -90,10 +97,6 @@ class Player(pygame.sprite.Sprite):
                 #vertivcal - right
                 self.last_dir_was_right = True
                 self.current_frames = self.all_frames[0]
-            elif direction == [0, 0]:
-                #stable
-                print("stable")
-                pass
             else:
                 #vertical - left
                 self.last_dir_was_right = False
@@ -204,14 +207,14 @@ def terminate():
 def start_screen(count=0):
     intro_text = ["Ваша задача:",
                   "Выбраться отсюда",
-                  "Попыток совершено:"+str(count)]
+                  "Попыток совершено: "+str(count)]
  
-    fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
-    screen.blit(fon, (0, 0))
+    bg = pygame.transform.scale(load_image('background.jpg'), (WIDTH, HEIGHT))
+    screen.blit(bg, (0, 0))
     font = pygame.font.Font(None, 30)
-    text_coord = 50
+    text_coord = HEIGHT//2
     for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
+        string_rendered = font.render(line, 1, pygame.Color(TEXT_COLOR))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -279,6 +282,7 @@ def music():
         path = os.path.abspath(os.curdir)+"\\data\\sound.mp3"
         print(path)
         pygame.mixer.music.load(path)
+        pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(-1)
     pass
 
@@ -306,12 +310,11 @@ tile_width = tile_height = 50
 count = 0 # number of attemps
 new_game(count)
 last_direction = [0, 0]
-volume = 1
-staying_k = 0
+
 
 music()
-pygame.time.set_timer(CHANGE_SHEET_ID, 150)
-pygame.time.set_timer(STABLE_ID, STABLE_K)
+pygame.time.set_timer(CHANGE_SHEET_ID, CHANGE_T)
+pygame.time.set_timer(STABLE_ID, STABLE_T)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -323,22 +326,23 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == 275 or event.key == 100:
                 #right
-                pygame.time.set_timer(STABLE_ID, STABLE_K)
+                pygame.time.set_timer(STABLE_ID, STABLE_T)
                 player.rect.x += STEP
                 last_direction = [STEP, 0]
             elif event.key == 276 or event.key == 97:
                 #left
-                pygame.time.set_timer(STABLE_ID, STABLE_K)
+                pygame.time.set_timer(STABLE_ID, STABLE_T)
                 player.rect.x -= STEP
                 last_direction = [-STEP, 0]
             if event.key == 274 or event.key == 115:
                 #bottom
-                pygame.time.set_timer(STABLE_ID, STABLE_K)
+                pygame.time.set_timer(STABLE_ID, STABLE_T)
                 player.rect.y += STEP
                 last_direction = [0, STEP]
             elif event.key == 273 or event.key == 119:
                 #top
-                pygame.time.set_timer(STABLE_ID, STABLE_K)
+                pygame.time.set_timer(STABLE_ID, STABLE_T)
+                pygame.time.set_timer(CHANGE_SHEET_ID, CHANGE_T)
                 player.rect.y -= STEP
                 last_direction = [0, -STEP]   
             else:
@@ -386,8 +390,9 @@ while running:
                 count += 1
                 print("FINISHED", "COUNTS: "+str(count), sep="\n")
                 pass
-
+    #print("V",volume)
     all_sprites.update()
+    player_group.update(False, last_direction)
     camera.update(player)
     screen.fill(pygame.Color("black"))
     for sprite in all_sprites:
