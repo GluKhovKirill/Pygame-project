@@ -46,6 +46,8 @@ class Tile(pygame.sprite.Sprite):
             add = exit_group
         elif tile_type == "check":
             add = tiles_group
+        elif tile_type == "treasure":
+            add = treasure_group
         
         super().__init__(add, all_sprites)
         image = tile_images[tile_type]
@@ -207,6 +209,11 @@ def generate_level(MAP):
                 elif tile_type == 'player':
                     Tile('empty', x, y)
                     new_player = Player(x, y)
+                elif tile_type == "check":
+                    Tile('check', x, y)
+                elif tile_type == "treasure":
+                    Tile('empty', x, y)
+                    Tile("treasure", x, y)
                 else:
                     Tile("hole", x, y)            
     return new_player, len(total_x), len(total_y)
@@ -226,6 +233,7 @@ def start_screen(count=0):
                   "K - самоубийство",
                   "R - пересоздание карты"
                   "[ ], P - громкость, отключение/включение музыки",
+                  "Сундуков собрано: "+str(chests),
                   "Попыток совершено: "+str(count)]
  
     bg = pygame.transform.scale(load_image('background.jpg'), (WIDTH, HEIGHT))
@@ -233,7 +241,7 @@ def start_screen(count=0):
     font = pygame.font.Font(None, 30)
     text_coord = HEIGHT//2
     for i in range(len(intro_text)):
-        if i == len(intro_text)-1:
+        if i >= len(intro_text)-2:
             string_rendered = font.render(intro_text[i], 1, pygame.Color(ATTEMPTS_COLOR))
         else:
             string_rendered = font.render(intro_text[i], 1, pygame.Color(TEXT_COLOR))
@@ -264,7 +272,7 @@ def new_game(count):
     running = True
     
     # sprites
-    global all_sprites, tiles_group, walls_group, hole_group, player_group, exit_group
+    global all_sprites, tiles_group, walls_group, hole_group, player_group, exit_group, treasure_group
     all_sprites = pygame.sprite.Group()
     #Grass group
     tiles_group = pygame.sprite.Group()
@@ -276,6 +284,8 @@ def new_game(count):
     player_group = pygame.sprite.Group()
     #Exit group
     exit_group = pygame.sprite.Group()
+    #Treasure group
+    treasure_group = pygame.sprite.Group()
     
     global player
     player = None
@@ -306,7 +316,8 @@ tile_images = {
     'empty': load_dir("ground", count=1),
     "hole": load_dir("hole"),
     "exit": load_image("exit.png"),
-    "check": load_image("check.jpg")
+    "check": load_image("check.jpg"),
+    "treasure": load_image("treasure.png")
 }
 
 #Different player's animations
@@ -315,6 +326,7 @@ player_left_image = load_image("player\\player_left.png")
 player_right_image = load_image("player\\player_right.png")
  
 count = 0 # number of attemps
+chests = 0 # number of collected chests
 new_game(count)
 last_direction = [0, 0]
 
@@ -400,6 +412,10 @@ while running:
             if pygame.sprite.spritecollideany(player, walls_group):
                 player.rect.x -= last_direction[0]
                 player.rect.y -= last_direction[1]
+                
+            if pygame.sprite.spritecollideany(player, treasure_group):
+                chests += 1
+                all_sprites.sprites().remove(pygame.sprite.spritecollideany(player, treasure_group))
             if pygame.sprite.spritecollideany(player, hole_group):
                 running = False
                 print("Game Over")
@@ -415,7 +431,6 @@ while running:
     all_sprites.update()
     player_group.update(False, last_direction)
     camera.update(player)
-    
     for sprite in all_sprites:
         camera.apply(sprite)
         
