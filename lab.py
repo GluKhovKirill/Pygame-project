@@ -38,7 +38,7 @@ class Transform():
     def Transformer(self):
         visit = self.generator()
         for i in self.visited:
-            self.c.append([i%5*350,i//5*(-350)])
+            self.c.append([i%5*700,i//5*(-700)])
         return self.c
     def trans(self, c):
         c_append = []
@@ -48,27 +48,30 @@ class Transform():
         for n in c:
             x = n[0]
             y = n[1]
-            for i in range(7):
-                for k in range(7):
-                    if y == n[1] or y == n[1] - 300 or x == n[0] or x == n[0] + 300:
+            for i in range(15):
+                for k in range(15):
+                    if y == n[1] or y == n[1] - 700 or (x == n[0]) or (x == n[0] + 700):
                         c_append.append([x, y, "wall"])
                     else:
                         if Flag:
                             c_append.append([x, y, "player"])
                             Flag = False
                         else:
-                            c_append.append([x, y, "grass"])
-                    if x != 650:
+                            c_append.append([x, y, random.choice(["grass","hole","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","wall"])])
+                    if x != n[0]+700:
                         x += 50
                     else:
                         x = n[0]
                 total.append(c_append)
                 c_append = []
-                if y != -300:
+                if y != n[1]-700:
                     y -= 50
             total1.append(total)
             total = []
         return total1
 
+
+for i in Transform().Transformer():
+    print(i)
 
 
