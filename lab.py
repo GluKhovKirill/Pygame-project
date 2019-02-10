@@ -44,13 +44,13 @@ class Transform():
         c_append = []
         total = []
         total1 = []
+        Flag = True
         for n in c:
             x = n[0]
             y = n[1]
-            Flag = True
-            for i in range(1, 8):
-                for k in range(8):
-                    if y == n[1] or y == n[1] - 350 or x == n[0] or x == n[0] + 350:
+            for i in range(7):
+                for k in range(7):
+                    if y == n[1] or y == n[1] - 300 or x == n[0] or x == n[0] + 300:
                         c_append.append([x, y, "wall"])
                     else:
                         if Flag:
@@ -58,18 +58,17 @@ class Transform():
                             Flag = False
                         else:
                             c_append.append([x, y, "grass"])
-                    if x != 700:
+                    if x != 650:
                         x += 50
                     else:
                         x = n[0]
                 total.append(c_append)
                 c_append = []
-                if y != -350:
+                if y != -300:
                     y -= 50
             total1.append(total)
             total = []
         return total1
 
 
-print(Transform().trans(Transform().Transformer()))
 
