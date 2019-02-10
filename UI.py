@@ -5,33 +5,42 @@ from random import shuffle
 from lab import Transform
 
 
-pygame.init()
-pygame.key.set_repeat(70, 70)
+#screen's size
 size = WIDTH, HEIGHT = 1152, 720
+#Tiles' sizes
 SIDE = 50
+#Player's characteristics
 JUMP_K = 2
 STEP = 10
+#Start_Sreen FPS
+FPS = 50
 TEXT_COLOR = "#2F17C7"
+ATTEMPTS_COLOR = "#900000"
 #Timers' IDs
 CHANGE_SHEET_ID = 30
 STABLE_ID = 31
 # Time coeffficients
 STABLE_T = 250
 CHANGE_T = 150
-screen = pygame.display.set_mode(size)
-clock = pygame.time.Clock()
 #music volume
 volume = 0.3
  
+pygame.init()
+pygame.key.set_repeat(70, 70)
+screen = pygame.display.set_mode(size)
+clock = pygame.time.Clock()
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
+        #default type == grass type
         add = tiles_group
         if tile_type == "wall":
             add = walls_group
         elif tile_type == "empty":
+            #grass type
             add = tiles_group
         elif tile_type == "hole":
+            #death tile type
             add = hole_group
         elif tile_type == "exit":
             add = exit_group
@@ -39,6 +48,7 @@ class Tile(pygame.sprite.Sprite):
         super().__init__(add, all_sprites)
         image = tile_images[tile_type]
         if type(image) == type([]):
+            #set random texture
             shuffle(image)
             self.image = image[0]
         else:
@@ -50,13 +60,16 @@ class Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
+        #Different frames for different states
         stay_frames = self.cut_sheet(player_stay_image, 10, 1)
         right_frames = self.cut_sheet(player_right_image, 10, 1)
         left_frames = self.cut_sheet(player_left_image, 10, 1)
+        self.all_frames = [right_frames, left_frames, stay_frames]
+        
         self.stable_frames = 0
         self.staying = False
         self.last_dir_was_right = False
-        self.all_frames = [right_frames, left_frames, stay_frames]
+        
         self.current_frames = self.all_frames[0]
         self.image = self.current_frames[0]
         self.current_frame = 0
@@ -64,32 +77,30 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(pos_x + 15, pos_y + 5)
         
     def cut_sheet(self, sheet, columns, rows):
+        #Cutting image into frames
         frames = []
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, sheet.get_height() // rows)
-        #print("SIZE",sheet.get_width() // columns, sheet.get_height() // rows)
         for j in range(rows):
             st = -1
             for i in range(columns):
                 st += 1
                 frame_location = ((self.rect.w * i)+st, self.rect.h * j)
-                #print(frame_location, self.rect.size)
                 image = sheet.subsurface(pygame.Rect(frame_location, self.rect.size))
-                #print(self.rect.size)
                 frames.append(image)
         return frames
     
     def update(self, change_image=False, direction=None, stay=None):
-        #print(change_image, direction, stay)
         if stay:
+            #If player doesn't move
             self.current_frames = self.all_frames[2]
             self.image = self.current_frames[0]
             self.direction = [0, 0]
         if direction and self.last_direction != direction:
+            #If player move and player changed his direction
             if self.last_direction[0] > 0:
                 self.last_dir_was_right = True
             elif self.last_direction[0] < 0:
                 self.last_dir_was_right = False
-            #print([str(i) for i in (direction, self.last_direction, self.last_dir_was_right)])
             self.current_frame = 0
             if (direction[0] > 0) or (direction[1] != 0 and self.last_dir_was_right):
                 #vertivcal - right
@@ -106,8 +117,6 @@ class Player(pygame.sprite.Sprite):
         if change_image:
             self.current_frame = (self.current_frame + 1) % len(self.current_frames)
             self.image = self.current_frames[self.current_frame]
-                
-            #print(self.current_frame)
             pass
     pass
 
@@ -122,18 +131,6 @@ class Camera:
     def apply(self, obj):
         obj.rect.x += self.dx
         obj.rect.y += self.dy
-        #TORA
-        '''
-        if obj.rect.x > WIDTH+50:
-            obj.rect.x -= (X+1)*50
-        elif obj.rect.x < -50:
-            obj.rect.x += (X+1)*50    
-            
-        if obj.rect.y > HEIGHT+50:
-            obj.rect.y -= (Y+1)*50
-        elif obj.rect.y < -50:
-            obj.rect.y += (Y+1)*50 
-    '''
             
     # позиционировать камеру на объекте target
     def update(self, target):
@@ -142,6 +139,7 @@ class Camera:
            
         
 def load_image(name, colorkey=None, add_data=True):
+    #Loading one image
     fullname = name
     try:
         if add_data:
@@ -161,6 +159,7 @@ def load_image(name, colorkey=None, add_data=True):
 
 
 def load_dir(path, colorkey=None, count=-1):
+    #Loading random files from dir (all if count==-1)
     try:
         path = os.path.join('data', path)
         files = os.listdir(path)
@@ -186,6 +185,7 @@ def load_dir(path, colorkey=None, count=-1):
 
 
 def generate_level(MAP):
+    #Drawing level
     new_player, total_x, total_y = None, set(), set()
     for room in MAP:
         for strip in room:
@@ -208,27 +208,32 @@ def generate_level(MAP):
                 else:
                     Tile("hole", x, y)            
     return new_player, len(total_x), len(total_y)
-
-
-FPS = 50
  
  
 def terminate():
+    #Exit
     pygame.quit()
     sys.exit()
  
  
 def start_screen(count=0):
-    intro_text = ["Ваша задача:",
-                  "Выбраться отсюда",
+    #Intro screen
+    intro_text = ["Управление:",
+                  "WASD/стрелки - перемещение",
+                  "SPACE - прыжок",
+                  "K - самоубийство",
+                  "[, ], P - громкость, отключение/включение музыки",
                   "Попыток совершено: "+str(count)]
  
     bg = pygame.transform.scale(load_image('background.jpg'), (WIDTH, HEIGHT))
     screen.blit(bg, (0, 0))
     font = pygame.font.Font(None, 30)
     text_coord = HEIGHT//2
-    for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color(TEXT_COLOR))
+    for i in range(len(intro_text)):
+        if i == len(intro_text)-1:
+            string_rendered = font.render(intro_text[i], 1, pygame.Color(ATTEMPTS_COLOR))
+        else:
+            string_rendered = font.render(intro_text[i], 1, pygame.Color(TEXT_COLOR))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -250,20 +255,25 @@ def start_screen(count=0):
 
   
 def new_game(count):
-    global running, camera, player, X, Y
+    #initializing a new game
+    global running, camera, X, Y
     camera = Camera()
     running = True
     
     # sprites
     global all_sprites, tiles_group, walls_group, hole_group, player_group, exit_group
     all_sprites = pygame.sprite.Group()
-    tiles_group = pygame.sprite.Group() #Grass
-    walls_group = pygame.sprite.Group() # WALLS
-    hole_group = pygame.sprite.Group() #DIE
-    player_group = pygame.sprite.Group() #player
-    exit_group = pygame.sprite.Group() #exit
+    #Grass group
+    tiles_group = pygame.sprite.Group()
+    #Walls group
+    walls_group = pygame.sprite.Group()
+    #Death Tiles group
+    hole_group = pygame.sprite.Group()
+    #Player's group
+    player_group = pygame.sprite.Group()
+    #Exit group
+    exit_group = pygame.sprite.Group()
     
-    # player
     global player
     player = None
     
@@ -277,6 +287,7 @@ def new_game(count):
 
 
 def music():
+    #Loading and playing music
     if not pygame.mixer.get_busy():
         path = os.path.abspath(os.curdir)+"\\data\\sound.mp3"
         print(path)
@@ -286,14 +297,7 @@ def music():
     pass
 
 
-'''
-all_sprites = pygame.sprite.Group()
-tiles_group = pygame.sprite.Group()
-walls_group = pygame.sprite.Group() # WALLS
-hole_group = pygame.sprite.Group() #DIE
-player_group = pygame.sprite.Group()
-exit_group = pygame.sprite.Group()
-'''
+#Tiles' textures
 tile_images = {
     'wall': load_dir('wall', count=1),
     'empty': load_dir("ground", count=1),
@@ -301,11 +305,11 @@ tile_images = {
     "exit": load_image("exit.png")
 }
 
+#Different player's animations
 player_stay_image = load_image("player\\player_stay.png")
 player_left_image = load_image("player\\player_left.png")
 player_right_image = load_image("player\\player_right.png")
  
-tile_width = tile_height = 50
 count = 0 # number of attemps
 new_game(count)
 last_direction = [0, 0]
@@ -314,6 +318,7 @@ last_direction = [0, 0]
 music()
 pygame.time.set_timer(CHANGE_SHEET_ID, CHANGE_T)
 pygame.time.set_timer(STABLE_ID, STABLE_T)
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -345,20 +350,30 @@ while running:
                 player.rect.y -= STEP
                 last_direction = [0, -STEP]   
             else:
-                if event.key == 107: #suicideC
+                if event.key == 107: 
+                    #suicide ('K" button)
                     running = False
                     print("You killed yourself\nCongradulations!")
                     count += 1
                     new_game(count)
                 elif event.key == 93:
+                    #Increase music ("]" button)
                     volume = (volume+0.1)%1
                     pygame.mixer.music.set_volume(volume)
                     pass
                 elif event.key == 91:
+                    #Reduce music ("[" button")
                     volume = (volume-0.1)%1
                     pygame.mixer.music.set_volume(volume)                
                     pass
-                elif event.key == 32: #jump
+                elif event.key == 112:
+                    #Mute/unmute ("P" button)
+                    if pygame.mixer.music.get_volume():
+                        pygame.mixer.music.set_volume(0)
+                    else:
+                        pygame.mixer.music.set_volume(volume)
+                elif event.key == 32:
+                    #jump
                     if last_direction[0]:
                         player.rect.x += int((last_direction[0]//abs(last_direction[0])) * SIDE)
                         if pygame.sprite.spritecollideany(player, walls_group):
@@ -375,7 +390,6 @@ while running:
                             last_direction[1] = int((last_direction[1]//abs(last_direction[1])) * SIDE * JUMP_K)
                         
             if pygame.sprite.spritecollideany(player, walls_group):
-                #print("WAAAAALL")
                 player.rect.x -= last_direction[0]
                 player.rect.y -= last_direction[1]
             if pygame.sprite.spritecollideany(player, hole_group):
@@ -389,17 +403,22 @@ while running:
                 count += 1
                 print("FINISHED", "COUNTS: "+str(count), sep="\n")
                 pass
-    #print("V",volume)
+            
+    screen.fill(pygame.Color("black"))     
     all_sprites.update()
     player_group.update(False, last_direction)
     camera.update(player)
-    screen.fill(pygame.Color("black"))
+    
     for sprite in all_sprites:
         camera.apply(sprite)
+        
     tiles_group.draw(screen)
     walls_group.draw(screen)
     hole_group.draw(screen)
     exit_group.draw(screen)
     player_group.draw(screen)
     pygame.display.flip()
+    pass
+
+    
 pygame.quit()
