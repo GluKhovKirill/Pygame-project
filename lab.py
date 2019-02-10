@@ -47,12 +47,17 @@ class Transform():
         for n in c:
             x = n[0]
             y = n[1]
+            Flag = True
             for i in range(1, 8):
                 for k in range(8):
                     if y == n[1] or y == n[1] - 350 or x == n[0] or x == n[0] + 350:
                         c_append.append([x, y, "wall"])
                     else:
-                        c_append.append([x, y, "grass"])
+                        if Flag:
+                            c_append.append([x, y, "player"])
+                            Flag = False
+                        else:
+                            c_append.append([x, y, "grass"])
                     if x != 700:
                         x += 50
                     else:
