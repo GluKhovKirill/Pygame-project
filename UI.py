@@ -401,11 +401,11 @@ while running:
                 count += 1
                 new_game(count)
                 pass
-            if pygame.sprite.spritecollideany(player, exit_group):
+            if pygame.sprite.spritecollideany(player, exit_group) or not pygame.sprite.spritecollideany(player, tiles_group):
                 running = False
                 count += 1
                 print("FINISHED", "COUNTS: "+str(count), sep="\n")
-                pass
+
             
     screen.fill(pygame.Color("black"))     
     all_sprites.update()
