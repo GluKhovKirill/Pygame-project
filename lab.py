@@ -61,7 +61,7 @@ class Transform():
                         elif v > 0:
                             print(n[0] > c[v-1][0] and (x == n[0] and y == n[1] - 350), x, y, 1, n[0], c[v-1][0])
                             print(n[1] < c[v-1][1] and (y == n[1] and x == n[0] + 350), x, y, 2, n[1], c[v-1][1])
-                            if n[0] > c[v-1][0] and (x == n[0] and y == n[1] - 350 or x == n[0] and y == n[1] - 300 or x == n[0] and y == n[1] - 400) or n[1] < c[v-1][1] and (y == n[1] and (x == n[0] + 350 or x == n[0] + 300 or x == n[0] + 400)):
+                            if n[0] > c[v-1][0] and (x == n[0] and y == n[1] - 350 or x == n[0] and y == n[1] - 300 or x == n[0] and y == n[1] - 400) or (n[1] < c[v-1][1] or n[1] > c[v-1][1]) and (y == n[1] and (x == n[0] + 350 or x == n[0] + 300 or x == n[0] + 400)):
                                 c_append.append([x, y, "grass"])
                             else:
                                 c_append.append([x, y, "wall"])
@@ -74,7 +74,7 @@ class Transform():
                             c_append.append([x, y, "player"])
                             Flag = False
                         else:
-                            c_append.append([x, y, random.choice(["grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","hole","wall"])])
+                            c_append.append([x, y, random.choice(["grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","hole","wall","treasure"])])
                     if x != n[0]+700:
                         x += 50
                     else:
