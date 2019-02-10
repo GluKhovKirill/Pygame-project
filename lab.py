@@ -38,26 +38,43 @@ class Transform():
     def Transformer(self):
         visit = self.generator()
         for i in self.visited:
-            self.c.append([i%5*700,i//5*(-700)])
+            if not i%5:
+                self.c.append([750, i // 5 * (-750)])
+            else:
+                self.c.append([(i%5)*750,i//5*(-750)])
         return self.c
     def trans(self, c):
         c_append = []
         total = []
         total1 = []
+        v = 0
         Flag = True
         for n in c:
             x = n[0]
             y = n[1]
-            for i in range(15):
-                for k in range(15):
+            for i in range(16):
+                for k in range(16):
+
                     if y == n[1] or y == n[1] - 700 or (x == n[0]) or (x == n[0] + 700):
-                        c_append.append([x, y, "wall"])
+                        if (x == n[0]+700 and y == n[1] - 350 or x == n[0]+700 and y == n[1] - 300 or x == n[0]+700 and y == n[1] - 400) or y == n[1]-700 and x == n[0] + 350 or y == n[1]-700 and x == n[0] + 300 or y == n[1]-700 and x == n[0] + 400:
+                            c_append.append([x, y, "grass"])
+                        elif v > 0:
+                            print(n[0] > c[v-1][0] and (x == n[0] and y == n[1] - 350), x, y, 1, n[0], c[v-1][0])
+                            print(n[1] < c[v-1][1] and (y == n[1] and x == n[0] + 350), x, y, 2, n[1], c[v-1][1])
+                            if n[0] > c[v-1][0] and (x == n[0] and y == n[1] - 350 or x == n[0] and y == n[1] - 300 or x == n[0] and y == n[1] - 400) or n[1] < c[v-1][1] and (y == n[1] and (x == n[0] + 350 or x == n[0] + 300 or x == n[0] + 400)):
+                                c_append.append([x, y, "grass"])
+                            else:
+                                c_append.append([x, y, "wall"])
+                        else:
+                            c_append.append([x, y, "wall"])
+
+
                     else:
                         if Flag:
                             c_append.append([x, y, "player"])
                             Flag = False
                         else:
-                            c_append.append([x, y, random.choice(["grass","hole","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","wall"])])
+                            c_append.append([x, y, random.choice(["grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","hole","wall"])])
                     if x != n[0]+700:
                         x += 50
                     else:
@@ -66,6 +83,7 @@ class Transform():
                 c_append = []
                 if y != n[1]-700:
                     y -= 50
+            v += 1
             total1.append(total)
             total = []
         return total1
