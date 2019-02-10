@@ -8,7 +8,7 @@
 <li>Tile (генератор блока)</li>
 <li>Camera (перемещение блоков "род игрока")</li>
 <li>player (сам игрок)</li></ul></p>
-<p>“Labyrinth” был написан на языке Python с помщью библиотек pygame, random, sys и os.</p>
+<p>“Labyrinth” был написан на языке Python с помощью библиотек pygame, random, sys и os.</p>
 <p>В дальнейшем мы собираемся:<br>
 :white_check_mark:улучшить генерацию карты (в частности, пофиксить баг со спавном игрока в тене)<br>
 :white_check_mark:улучшить прыжок ГГ<br>
