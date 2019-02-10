@@ -224,6 +224,7 @@ def start_screen(count=0):
                   "WASD/стрелки - перемещение",
                   "SPACE - прыжок",
                   "K - самоубийство",
+                  "R - пересоздание карты"
                   "[ ], P - громкость, отключение/включение музыки",
                   "Попыток совершено: "+str(count)]
  
@@ -359,6 +360,10 @@ while running:
                     print("You killed yourself\nCongradulations!")
                     count += 1
                     new_game(count)
+                elif event.key == 114:
+                    running = False
+                    print("RESET LEVEL!")
+                    new_game(count)
                 elif event.key == 93:
                     #Increase music ("]" button)
                     volume = (volume+0.1)%1
@@ -406,7 +411,6 @@ while running:
                 count += 1
                 print("FINISHED", "COUNTS: "+str(count), sep="\n")
 
-            
     screen.fill(pygame.Color("black"))     
     all_sprites.update()
     player_group.update(False, last_direction)
