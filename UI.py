@@ -2,7 +2,7 @@ import os
 import pygame
 import sys
 from random import shuffle
-from generator import MAP
+from lab import Transform
 
 
 pygame.init()
@@ -268,7 +268,7 @@ def new_game(count):
     player = None
     
     try:
-        player, X, Y = generate_level(MAP)
+        player, X, Y = generate_level(Transform().trans(Transform().Transformer()))
         start_screen(count)
     except Exception as e:
         print("Error....", e)
