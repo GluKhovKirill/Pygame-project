@@ -44,6 +44,8 @@ class Tile(pygame.sprite.Sprite):
             add = hole_group
         elif tile_type == "exit":
             add = exit_group
+        elif tile_type == "check":
+            add = tiles_group
         
         super().__init__(add, all_sprites)
         image = tile_images[tile_type]
@@ -222,7 +224,7 @@ def start_screen(count=0):
                   "WASD/стрелки - перемещение",
                   "SPACE - прыжок",
                   "K - самоубийство",
-                  "[, ], P - громкость, отключение/включение музыки",
+                  "[ ], P - громкость, отключение/включение музыки",
                   "Попыток совершено: "+str(count)]
  
     bg = pygame.transform.scale(load_image('background.jpg'), (WIDTH, HEIGHT))
@@ -302,7 +304,8 @@ tile_images = {
     'wall': load_dir('wall', count=1),
     'empty': load_dir("ground", count=1),
     "hole": load_dir("hole"),
-    "exit": load_image("exit.png")
+    "exit": load_image("exit.png"),
+    "check": load_image("check.jpg")
 }
 
 #Different player's animations
