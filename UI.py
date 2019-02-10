@@ -375,6 +375,7 @@ while running:
                 elif event.key == 114:
                     running = False
                     print("RESET LEVEL!")
+                    chests = 0
                     new_game(count)
                 elif event.key == 93:
                     #Increase music ("]" button)
@@ -415,7 +416,7 @@ while running:
                 
             if pygame.sprite.spritecollideany(player, treasure_group):
                 chests += 1
-                all_sprites.sprites().remove(pygame.sprite.spritecollideany(player, treasure_group))
+                pygame.sprite.Sprite.kill(pygame.sprite.spritecollideany(player, treasure_group))
             if pygame.sprite.spritecollideany(player, hole_group):
                 running = False
                 print("Game Over")
@@ -439,6 +440,7 @@ while running:
     hole_group.draw(screen)
     exit_group.draw(screen)
     player_group.draw(screen)
+    treasure_group.draw(screen)
     pygame.display.flip()
     pass
 
