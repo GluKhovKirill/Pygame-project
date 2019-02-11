@@ -88,8 +88,3 @@ class Transform():
             total = []
         return total1
 
-
-for i in Transform().Transformer():
-    print(i)
-
-
