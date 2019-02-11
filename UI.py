@@ -335,6 +335,10 @@ music()
 pygame.time.set_timer(CHANGE_SHEET_ID, CHANGE_T)
 pygame.time.set_timer(STABLE_ID, STABLE_T)
 
+#"bugfix"
+while pygame.sprite.spritecollideany(player, walls_group):
+    new_game(count)
+ 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -375,6 +379,7 @@ while running:
                 elif event.key == 114:
                     running = False
                     print("RESET LEVEL!")
+                    count = 0
                     chests = 0
                     new_game(count)
                 elif event.key == 93:
