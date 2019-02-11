@@ -10,8 +10,8 @@
 <li>player (сам игрок)</li></ul></p>
 <p>“Labyrinth” был написан на языке Python с помощью библиотек pygame, random, sys и os.</p>
 <p>В дальнейшем мы собираемся:<br>
-:white_check_mark: пофиксить баг со спавном игрока в стене
-улучшить генерацию карты<br>
+:white_check_mark: пофиксить баг со спавном игрока в стене<br>
+:black_square_button: улучшить генерацию карты<br>
 :black_square_button: улучшить прыжок ГГ<br>
 :black_square_button: добавить ботов, с которыми можно будет сражаться<br>
 :black_square_button: сделать запись рекордов</p>
