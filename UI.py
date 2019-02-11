@@ -291,7 +291,7 @@ def new_game(count):
     player = None
     
     try:
-        player, X, Y = generate_level(Transform().trans(Transform().Transformer()))
+        player, X, Y = generate_level(the_map)
         start_screen(count)
     except Exception as e:
         print("Error....", e)
@@ -327,6 +327,7 @@ player_right_image = load_image("player\\player_right.png")
  
 count = 0 # number of attemps
 chests = 0 # number of collected chests
+the_map = Transform().trans(Transform().Transformer())
 new_game(count)
 last_direction = [0, 0]
 
@@ -379,6 +380,7 @@ while running:
                 elif event.key == 114:
                     running = False
                     print("RESET LEVEL!")
+                    the_map = Transform().trans(Transform().Transformer())
                     count = 0
                     chests = 0
                     new_game(count)
